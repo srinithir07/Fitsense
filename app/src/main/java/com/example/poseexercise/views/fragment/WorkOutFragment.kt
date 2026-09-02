@@ -1106,7 +1106,7 @@ class WorkOutFragment : Fragment(), MemoryManagement {
      *Constants and companion object
      */
     companion object {
-        private const val TAG = "RepDetect CameraXLivePreview"
+        private const val TAG = "FitSense CameraXLivePreview"
         private const val POSE_DETECTION = "Pose Detection"
         private const val PERMISSION_REQUESTS = 1
 

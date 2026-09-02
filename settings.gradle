@@ -27,5 +27,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "PoseExercise"
+rootProject.name = "FitSense"
 include ':app'

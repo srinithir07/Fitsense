@@ -39,7 +39,7 @@ import kotlin.math.min
 
 class HomeFragment : Fragment(), PlanAdapter.ItemListener, MemoryManagement {
     @Suppress("PropertyName")
-    val TAG = "RepDetect Home Fragment"
+    val TAG = "FitSense Home Fragment"
     private lateinit var homeViewModel: HomeViewModel
     private lateinit var resultViewModel: ResultViewModel
     private lateinit var recentActivityRecyclerView: RecyclerView
