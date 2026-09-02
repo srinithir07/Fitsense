@@ -238,4 +238,12 @@ The detected landmark data plays a crucial role in training machine learning mod
 - Lifecycle LiveData - androidx.lifecycle:lifecycle-livedata:2.3.1
 - Lifecycle ViewModel - androidx.lifecycle:lifecycle-viewmodel:2.3.1
 
+## Attribution
+
+This project is based on and modified from RepDetect by giangong.
+
+The original project is licensed under the Apache License 2.0.
+
+This version contains modifications and additional functionality
+developed for this project.
 
