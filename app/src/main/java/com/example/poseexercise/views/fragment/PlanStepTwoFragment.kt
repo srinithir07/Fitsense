@@ -60,7 +60,7 @@ class PlanStepTwoFragment : Fragment(), MemoryManagement {
         // Option list for days in week
         val listAdapter = ArrayAdapter(
             this.requireContext(),
-            android.R.layout.simple_list_item_multiple_choice,
+            R.layout.layout_day_item,
             days
         )
         listOfDays.adapter = listAdapter

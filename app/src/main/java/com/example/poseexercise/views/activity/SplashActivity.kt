@@ -22,11 +22,16 @@ class SplashActivity : AppCompatActivity() {
 
         // Use a Handler to delay the intent navigation
         Handler(Looper.getMainLooper()).postDelayed({
-            val intent = Intent(this, MainActivity::class.java)
+            val prefManager = PrefManager(this)
+            val intent = if (prefManager.isFirstTimeLaunch()) {
+                Intent(this, OnboardingActivity::class.java)
+            } else {
+                Intent(this, MainActivity::class.java)
+            }
 
-            // Start the MainActivity and finish this SplashActivity
+            // Start activity and finish SplashActivity
             startActivity(intent)
             finish()
-        }, 1000)// Delay for 1000 milliseconds (1 seconds)
+        }, 1000)
     }
 }

@@ -44,6 +44,17 @@ class OnboardingActivity : AppCompatActivity(), MemoryManagement {
         val indicator = findViewById<DotsIndicator>(R.id.dots_indicator)
         indicator.attachTo(viewPager)
 
+        viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                super.onPageSelected(position)
+                if (position == fragments.size - 1) {
+                    nextButton.text = "Start Training"
+                } else {
+                    nextButton.text = getString(R.string.next_onboarding)
+                }
+            }
+        })
+
         nextButton.setOnClickListener {
             // Handle "Next" button click
             if (viewPager.currentItem < fragments.size - 1) {
@@ -56,10 +67,6 @@ class OnboardingActivity : AppCompatActivity(), MemoryManagement {
                 val intent = Intent(this, MainActivity::class.java)
                 startActivity(intent)
                 finish()
-            }
-            //Update the button text to "Get Started" on the last fragment
-            if (viewPager.currentItem == fragments.size - 1) {
-                nextButton.text = getString(R.string.get_started)
             }
         }
     }

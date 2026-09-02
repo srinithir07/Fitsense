@@ -11,7 +11,6 @@ import com.example.poseexercise.R
 import com.example.poseexercise.databinding.ActivityMainBinding
 import np.com.susanthapa.curved_bottom_navigation.CbnMenuItem
 
-
 /**
  * Main Activity and entry point for the app.
  */
@@ -28,25 +27,22 @@ class MainActivity : AppCompatActivity() {
 
         prefManager = PrefManager(this)
         if (prefManager.isFirstTimeLaunch()) {
-            // Show the onboarding screen
             startActivity(Intent(this, OnboardingActivity::class.java))
-            // Close the main activity
             finish()
+            return
         }
 
         increaseNotificationVolume()
 
-        // Get the navigation host fragment from this Activity
         val navHostFragment = supportFragmentManager
             .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
-        // Instantiate the navController using the NavHostFragment
         navController = navHostFragment.navController
 
         val menuItems = arrayOf(
             CbnMenuItem(
-                R.drawable.home, // the icon
-                R.drawable.avd_home, // the AVD that will be shown in FAB
-                R.id.homeFragment // Jetpack Navigation
+                R.drawable.home,
+                R.drawable.avd_home,
+                R.id.homeFragment
             ),
             CbnMenuItem(
                 R.drawable.workout,
@@ -66,11 +62,16 @@ class MainActivity : AppCompatActivity() {
         )
         binding.navView.setMenuItems(menuItems, 0)
         binding.navView.setupWithNavController(navController)
+
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            if (destination.id == R.id.workoutFragment) {
+                binding.navView.visibility = android.view.View.GONE
+            } else {
+                binding.navView.visibility = android.view.View.VISIBLE
+            }
+        }
     }
 
-    /**
-     * Enables back button support. Simply navigates one element up on the stack.
-     */
     override fun onSupportNavigateUp(): Boolean {
         return navController.navigateUp() || super.onSupportNavigateUp()
     }
@@ -80,11 +81,7 @@ class MainActivity : AppCompatActivity() {
         var workoutTimer: String? = null
     }
 
-    /**
-     * This method is used to increase the notification sound volume to max
-     */
     private fun increaseNotificationVolume() {
-        // Increase the volume to max.
         val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
         audioManager.setStreamVolume(
             AudioManager.STREAM_NOTIFICATION,

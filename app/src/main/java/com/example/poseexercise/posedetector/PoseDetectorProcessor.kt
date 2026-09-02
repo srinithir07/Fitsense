@@ -1,19 +1,3 @@
-/*
- * Copyright 2020 Google LLC. All rights reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.example.poseexercise.posedetector
 
 import android.content.Context
@@ -89,9 +73,13 @@ class PoseDetectorProcessor(
             .continueWith(
                 classificationExecutor
             ) { task ->
+                if (!task.isSuccessful) {
+                    val ex = task.exception
+                    throw ex ?: RuntimeException("Pose detection failed")
+                }
                 val pose = task.result
                 var classificationResult: Map<String, PostureResult> = HashMap()
-                if (runClassification) {
+                if (runClassification && pose != null) {
                     if (poseClassifierProcessor == null) {
                         poseClassifierProcessor =
                             PoseClassifierProcessor(
@@ -101,7 +89,6 @@ class PoseDetectorProcessor(
                             )
                     }
                     classificationResult = poseClassifierProcessor!!.getPoseResult(pose)
-
                 }
                 PoseWithClassification(pose, classificationResult)
             }
@@ -113,9 +100,13 @@ class PoseDetectorProcessor(
             .continueWith(
                 classificationExecutor
             ) { task ->
+                if (!task.isSuccessful) {
+                    val ex = task.exception
+                    throw ex ?: RuntimeException("Pose detection failed")
+                }
                 val pose = task.result
                 var classificationResult: Map<String, PostureResult> = HashMap()
-                if (runClassification) {
+                if (runClassification && pose != null) {
                     if (poseClassifierProcessor == null) {
                         poseClassifierProcessor =
                             PoseClassifierProcessor(
@@ -150,7 +141,6 @@ class PoseDetectorProcessor(
     }
 
     override fun isMlImageEnabled(context: Context?): Boolean {
-        // Use MlImage in Pose Detection by default, change it to OFF to switch to InputImage.
         return true
     }
 

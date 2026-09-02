@@ -11,19 +11,17 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <!-- Camera Preview -->
+        <!-- 1. Camera Preview (Full Screen Background) -->
         <androidx.camera.view.PreviewView
             android:id="@+id/preview_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.0" />
+            app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- Graphic Overlay for Pose Detection -->
+        <!-- 2. Graphic Overlay for 33 ML Kit Pose Landmarks (Primary Layer) -->
         <com.example.poseexercise.views.graphic.GraphicOverlay
             android:id="@+id/graphic_overlay"
             android:layout_width="match_parent"
@@ -33,227 +31,407 @@
             app:layout_constraintRight_toRightOf="@id/preview_view"
             app:layout_constraintTop_toTopOf="@id/preview_view" />
 
+        <!-- 3. Top HUD: Exercise Name, Recording Dot, and Timer -->
+        <LinearLayout
+            android:id="@+id/topHudContainer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/hud_background"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="8dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <TextView
+                android:id="@+id/currentExerciseText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/exercise_count"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:visibility="visible" />
+
+            <ImageView
+                android:id="@+id/timerRecIcon"
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:layout_marginStart="12dp"
+                android:contentDescription="@string/record_icon"
+                android:src="@drawable/camera_rec_red_point"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/timerTV"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:text="@string/_00_00"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <!-- 4. Camera Facing Switch Button (Top Right Corner) -->
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/facing_switch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:layout_marginEnd="12dp"
+            android:alpha="0.9"
+            android:importantForAccessibility="no"
+            android:visibility="gone"
+            app:backgroundTint="@color/primaryColor"
+            app:elevation="8dp"
+            app:fabCustomSize="40dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:pressedTranslationZ="6dp"
+            app:rippleColor="@color/white"
+            app:srcCompat="@drawable/cameraflip" />
+
+        <!-- 5. UPPER-RIGHT: FitSense AI Coach Panel (Compact ~200dp) -->
+        <LinearLayout
+            android:id="@+id/fitsenseAnalysisPanel"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="12dp"
+            android:background="@drawable/hud_background"
+            android:orientation="vertical"
+            android:padding="10dp"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/facing_switch">
+
+            <TextView
+                android:id="@+id/fitsenseTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="FITSENSE AI COACH"
+                android:textColor="@color/primaryColor"
+                android:textSize="10sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/formScoreText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:text="FORM  --/100"
+                android:textColor="@color/white"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/riskScoreText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="1dp"
+                android:text="FORM RISK  --/100"
+                android:textColor="#F3F4F6"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/riskLevelText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="1dp"
+                android:text="LOW"
+                android:textColor="@color/primaryColor"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/formWarningText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:text="Form analysis ready"
+                android:textColor="#E5E7EB"
+                android:textSize="11sp" />
+
+            <!-- Joint Analysis Header -->
+            <TextView
+                android:id="@+id/jointAnalysisHeader"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="JOINT ANALYSIS"
+                android:textColor="#9CA3AF"
+                android:textSize="9sp"
+                android:textStyle="bold" />
+
+            <!-- Joint Metric Row 1 -->
+            <RelativeLayout
+                android:id="@+id/jointRow1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp">
+
+                <TextView
+                    android:id="@+id/jointLabel1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Left Knee"
+                    android:textColor="#E5E7EB"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/jointValue1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:text="--°"
+                    android:textColor="@color/primaryColor"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+            </RelativeLayout>
+
+            <!-- Joint Metric Row 2 -->
+            <RelativeLayout
+                android:id="@+id/jointRow2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp">
+
+                <TextView
+                    android:id="@+id/jointLabel2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Right Knee"
+                    android:textColor="#E5E7EB"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/jointValue2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:text="--°"
+                    android:textColor="@color/primaryColor"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+            </RelativeLayout>
+
+            <!-- Joint Metric Row 3 -->
+            <RelativeLayout
+                android:id="@+id/jointRow3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp">
+
+                <TextView
+                    android:id="@+id/jointLabel3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Symmetry"
+                    android:textColor="#E5E7EB"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/jointValue3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:text="--°"
+                    android:textColor="@color/primaryColor"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+            </RelativeLayout>
+
+            <!-- Joint Metric Row 4 -->
+            <RelativeLayout
+                android:id="@+id/jointRow4"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp">
+
+                <TextView
+                    android:id="@+id/jointLabel4"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Hip Angle"
+                    android:textColor="#E5E7EB"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/jointValue4"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:text="--°"
+                    android:textColor="@color/primaryColor"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+            </RelativeLayout>
+
+        </LinearLayout>
+
+        <!-- 6. LOWER-RIGHT: Rep Count & Exercise Progress Panel -->
+        <LinearLayout
+            android:id="@+id/repProgressContainer"
+            android:layout_width="180dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="12dp"
+            android:layout_marginBottom="12dp"
+            android:background="@drawable/hud_background"
+            android:orientation="vertical"
+            android:padding="10dp"
+            android:visibility="gone"
+            app:layout_constraintBottom_toTopOf="@+id/button_complete_exercise"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="REP COUNT"
+                android:textColor="#9CA3AF"
+                android:textSize="10sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/currentRepetitionText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="2dp"
+                android:layout_marginBottom="6dp"
+                android:text="0"
+                android:textColor="@color/primaryColor"
+                android:textSize="36sp"
+                android:textStyle="bold" />
+
+            <!-- Exercise Progress List -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/workoutRecycleViewArea"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:maxHeight="120dp"
+                android:paddingHorizontal="4dp"
+                android:paddingVertical="4dp" />
+
+        </LinearLayout>
+
+        <!-- 7. Yoga Pose Overlay Snapshot -->
+        <ImageView
+            android:id="@+id/yogaPoseSnapShot"
+            android:layout_width="120dp"
+            android:layout_height="130dp"
+            android:layout_margin="10dp"
+            android:contentDescription="@string/confidence_indicator"
+            android:src="@drawable/warrior_yoga_pose"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/topHudContainer" />
+
         <!-- Confidence Indicator -->
         <ImageView
             android:id="@+id/confidenceIndicatorView"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:alpha="0.7"
             android:layout_margin="10dp"
-            android:visibility="invisible"
-            android:contentDescription="@string/confidence_indicator"
+            android:alpha="0.7"
             android:background="@drawable/confidence_indicator"
+            android:contentDescription="@string/confidence_indicator"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintDimensionRatio="1"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintTop_toTopOf="parent"/>
-
-
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/confidenceIndicatorTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="100sp"
             android:textColor="@color/white"
+            android:textSize="100sp"
             android:textStyle="bold"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toBottomOf="@+id/confidenceIndicatorView"
             app:layout_constraintEnd_toEndOf="@+id/confidenceIndicatorView"
             app:layout_constraintStart_toStartOf="@+id/confidenceIndicatorView"
-            app:layout_constraintBottom_toBottomOf="@+id/confidenceIndicatorView"
-            app:layout_constraintTop_toTopOf="@+id/confidenceIndicatorView"/>
+            app:layout_constraintTop_toTopOf="@+id/confidenceIndicatorView" />
 
         <TextView
             android:id="@+id/completedAllExerciseTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="25sp"
-            android:padding="20dp"
-            android:textAlignment="center"
-            android:visibility="gone"
-            android:layout_marginBottom="30dp"
+            android:layout_marginBottom="16dp"
+            android:padding="16dp"
             android:text="@string/completedAll"
+            android:textAlignment="center"
             android:textColor="@color/white"
+            android:textSize="22sp"
             android:textStyle="bold"
+            android:visibility="gone"
+            app:layout_constraintBottom_toTopOf="@+id/repProgressContainer"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintBottom_toTopOf="@+id/workoutRecycleViewArea"/>
+            app:layout_constraintStart_toStartOf="parent" />
 
-        <!-- Cancel Exercise Button -->
+        <!-- 8. Cancel Exercise Button (Bottom Left) -->
         <Button
             android:id="@+id/button_cancel_exercise"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginBottom="16dp"
             android:text="@string/cancel_button"
-            android:visibility="invisible"
             android:textColor="@color/white"
+            android:visibility="invisible"
             app:backgroundTint="@color/primaryColor"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.1"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.87"
             app:pressedTranslationZ="6dp"
             app:tint="@color/white" />
 
-        <!-- Start Exercise Button -->
+        <!-- 9. Start Exercise Button (Bottom Center during Demo) -->
         <Button
             android:id="@+id/button_start_exercise"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
             android:text="@string/start_button"
             android:textColor="@color/white"
             app:backgroundTint="@color/primaryColor"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.498"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.87"
             app:pressedTranslationZ="6dp"
             app:tint="@color/white" />
 
-        <!-- Complete Exercise Button -->
+        <!-- 10. Complete Exercise Button (Bottom Right) -->
         <Button
             android:id="@+id/button_complete_exercise"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="16dp"
             android:text="@string/complete_button"
             android:textColor="@color/white"
             android:visibility="invisible"
             app:backgroundTint="@color/blueButton"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.9"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.87"
             app:pressedTranslationZ="6dp"
             app:tint="@color/white" />
 
-        <!-- RecyclerView for Workout Exercise List -->
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/workoutRecycleViewArea"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@drawable/exerciselist_background"
-            android:paddingHorizontal="15dp"
-            android:layout_marginEnd="20dp"
-            android:paddingVertical="5dp"
-            app:layout_constraintBottom_toTopOf="@+id/facing_switch"
-            app:layout_constraintEnd_toEndOf="@+id/preview_view"
-            app:layout_constraintTop_toBottomOf="@+id/currentRepetitionText" />
-
-        <!-- Camera Facing Switch Button -->
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/facing_switch"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:alpha="0.9"
-            android:importantForAccessibility="no"
-            app:backgroundTint="@color/primaryColor"
-            app:elevation="15dp"
-            app:fabCustomSize="40dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.92"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.87"
-            app:pressedTranslationZ="6dp"
-            app:rippleColor="@color/white"
-            app:srcCompat="@drawable/cameraflip" />
-
-        <!-- Timer Recording Icon -->
-        <ImageView
-            android:id="@+id/timerRecIcon"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="5dp"
-            android:src="@drawable/camera_rec_red_point"
-            android:visibility="gone"
-            app:layout_constraintBottom_toBottomOf="@+id/timerTV"
-            app:layout_constraintEnd_toStartOf="@+id/timerTV"
-            app:layout_constraintTop_toTopOf="@+id/timerTV"
-            android:contentDescription="@string/record_icon" />
-
-        <!-- Timer TextView -->
-        <TextView
-            android:id="@+id/timerTV"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/_00_00"
-            android:textColor="@color/white"
-            android:textSize="30sp"
-            android:textStyle="bold"
-            android:visibility="gone"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.05" />
-
-        <!-- Current Exercise Text -->
-        <TextView
-            android:id="@+id/currentExerciseText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/exercise_count"
-            android:textColor="@color/white"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:visibility="invisible"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.05"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.05" />
-
-        <!-- Current Repetition Text -->
-        <TextView
-            android:id="@+id/currentRepetitionText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/exercise_count"
-            android:textColor="@color/white"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:visibility="invisible"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.95"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.05" />
-
-
-        <!-- Yoga Pose -->
-        <ImageView
-            android:id="@+id/yogaPoseSnapShot"
-            android:layout_width="140dp"
-            android:layout_height="150dp"
-            android:layout_margin="10dp"
-            android:contentDescription="@string/confidence_indicator"
-            android:src="@drawable/warrior_yoga_pose"
-            android:visibility="gone"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.98"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.02" />
-
-
-        <!-- Loading Status TextView -->
+        <!-- Loading Status and Progress Bar -->
         <TextView
             android:id="@+id/loadingStatus"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/exerciselist_background"
-            android:paddingHorizontal="50dp"
-            android:paddingVertical="100dp"
+            android:paddingHorizontal="40dp"
+            android:paddingVertical="80dp"
             android:text="@string/loading"
             android:textColor="@color/white"
             android:textSize="20sp"
@@ -261,10 +439,8 @@
             app:layout_constraintBottom_toTopOf="@+id/button_start_exercise"
             app:layout_constraintEnd_toEndOf="@+id/preview_view"
             app:layout_constraintStart_toStartOf="@+id/preview_view"
-            app:layout_constraintTop_toBottomOf="@+id/timerTV" />
+            app:layout_constraintTop_toTopOf="parent" />
 
-
-        <!-- Loading Progress Bar -->
         <ProgressBar
             android:id="@+id/loadingProgress"
             android:layout_width="wrap_content"
@@ -275,15 +451,14 @@
             app:layout_constraintStart_toStartOf="@+id/loadingStatus"
             app:layout_constraintTop_toBottomOf="@+id/loadingStatus" />
 
-
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- FrameLayout for black background behind ViewPager -->
+    <!-- Demo Exercise GIF Overlay Container -->
     <FrameLayout
         android:id="@+id/gifContainer"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@android:color/black"
+        android:background="?android:attr/windowBackground"
         android:visibility="gone">
 
         <!-- ViewPager for GIFs -->
@@ -292,13 +467,12 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
-
         <!-- GifImageView for displaying exercise GIFs -->
         <pl.droidsonroids.gif.GifImageView
             android:id="@+id/exerciseGifImageView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:visibility="invisible"/>
+            android:visibility="invisible" />
 
         <!-- Skip button -->
         <Button
@@ -308,6 +482,5 @@
             android:visibility="invisible" />
 
     </FrameLayout>
-
 
 </FrameLayout>

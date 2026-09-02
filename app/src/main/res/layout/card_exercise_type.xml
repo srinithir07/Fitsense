@@ -1,22 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/card"
     android:layout_width="match_parent"
-    android:layout_height="@dimen/list_item_height"
-    android:layout_marginHorizontal="@dimen/margin_small"
-    android:layout_marginBottom="@dimen/margin_larger"
-    android:clickable="true">
+    android:layout_height="110dp"
+    android:layout_marginBottom="14dp"
+    android:clickable="true"
+    app:cardBackgroundColor="@color/white"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="2dp"
+    app:strokeWidth="0dp">
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="match_parent">
 
-        <!-- Media -->
+        <!-- Exercise Thumbnail Media -->
         <ImageView
             android:id="@+id/exercise_image"
-            android:layout_width="150dp"
+            android:layout_width="120dp"
             android:layout_height="match_parent"
             android:contentDescription="@string/content_description_media"
             android:scaleType="centerCrop" />
@@ -24,57 +26,65 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/chip"
-            android:layout_marginStart="@dimen/margin_large"
-            android:layout_marginBottom="@dimen/margin_small"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="14dp"
+            android:layout_marginEnd="32dp"
             android:layout_toEndOf="@id/exercise_image"
             android:orientation="vertical">
 
-            <!-- Title, secondary and supporting text -->
+            <!-- Difficulty Level Chip -->
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip"
+                style="@style/Widget.Material3.Chip.Suggestion"
+                android:layout_width="wrap_content"
+                android:layout_height="24dp"
+                android:layout_marginBottom="4dp"
+                android:clickable="false"
+                android:textColor="@color/primaryColor"
+                android:textSize="11sp"
+                app:chipBackgroundColor="#E6F4EA"
+                app:chipCornerRadius="12dp"
+                app:chipMinHeight="24dp"
+                app:chipStrokeWidth="0dp" />
+
+            <!-- Title -->
             <TextView
                 android:id="@+id/exercise_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textAppearance="?attr/textAppearanceTitleMedium"
-                android:textSize="20sp"
+                android:textColor="@color/textPrimary"
+                android:textSize="17sp"
                 android:textStyle="bold" />
 
+            <!-- Calories -->
             <LinearLayout
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:gravity="center_vertical"
                 android:orientation="horizontal">
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:contentDescription="@string/content_description_media"
-                    android:scaleType="centerCrop"
-                    app:srcCompat="@drawable/fire" />
 
                 <TextView
                     android:id="@+id/exercise_calories"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_margin="@dimen/margin_small"
-
-                    android:textAppearance="?attr/textAppearanceBodyMedium"
-                    android:textColor="?android:attr/textColorSecondary" />
+                    android:textColor="@color/textMuted"
+                    android:textSize="13sp" />
 
             </LinearLayout>
 
         </LinearLayout>
 
-        <com.google.android.material.chip.Chip
-            android:id="@+id/chip"
-            style="@style/Widget.Material3.Chip.Suggestion"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+        <!-- Chevron Arrow -->
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
             android:layout_alignParentEnd="true"
-            android:layout_marginStart="@dimen/margin_small"
-            android:layout_marginTop="@dimen/margin_small"
-            android:layout_marginEnd="@dimen/margin_small"
-            android:layout_marginBottom="@dimen/margin_small"
-            android:checked="true" />
+            android:layout_centerVertical="true"
+            android:layout_marginEnd="16dp"
+            android:contentDescription="@string/action"
+            android:src="@drawable/right_arrow"
+            app:tint="@color/textMuted" />
 
     </RelativeLayout>
 

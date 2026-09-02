@@ -32,23 +32,26 @@
                     android:id="@+id/textView"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/margin_xxlarge"
+                    android:layout_marginTop="24dp"
                     android:text="@string/new_plan"
-                    android:textSize="@dimen/text_header"
+                    android:textColor="@color/textPrimary"
+                    android:textSize="26sp"
                     android:textStyle="bold"
                     app:layout_constraintBottom_toTopOf="@id/textField1"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
-
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/textField1"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_margin="@dimen/margin_xlarge"
+                    android:layout_marginHorizontal="24dp"
+                    android:layout_marginTop="16dp"
                     android:hint="@string/label_exercise_name"
-                    app:endIconMode="clear_text"
+                    app:boxStrokeColor="@color/primaryColor"
+                    app:hintTextColor="@color/primaryColor"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/textView">
@@ -57,19 +60,25 @@
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/exercise_name"
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:enabled="false" />
+                        android:layout_height="wrap_content"
+                        android:enabled="false"
+                        android:textColor="@color/textPrimary"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
 
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <!-- Repeat Count TextInputLayout -->
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/textField2"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_margin="@dimen/margin_xlarge"
+                    android:layout_marginHorizontal="24dp"
+                    android:layout_marginTop="16dp"
                     android:hint="@string/label_rep"
-                    app:endIconMode="clear_text"
+                    app:boxStrokeColor="@color/primaryColor"
+                    app:hintTextColor="@color/primaryColor"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/textField1">
@@ -79,7 +88,10 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="number"
-                        android:maxLength="3" />
+                        android:maxLength="3"
+                        android:textColor="@color/textPrimary"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
 
                 </com.google.android.material.textfield.TextInputLayout>
 
@@ -88,9 +100,10 @@
                     android:id="@+id/textView2"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/margin_large"
+                    android:layout_marginTop="20dp"
                     android:text="@string/label_days"
-                    android:textSize="@dimen/text_label"
+                    android:textColor="@color/textPrimary"
+                    android:textSize="18sp"
                     android:textStyle="bold"
                     app:layout_constraintStart_toStartOf="@id/textField2"
                     app:layout_constraintTop_toBottomOf="@+id/textField2" />
@@ -103,7 +116,8 @@
             android:id="@+id/second_part"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_margin="@dimen/margin_xlarge"
+            android:layout_marginHorizontal="24dp"
+            android:layout_marginTop="12dp"
             android:layout_weight="0.4"
             android:orientation="vertical"
             app:layout_constraintBottom_toTopOf="@+id/third_part"
@@ -116,18 +130,19 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:choiceMode="multipleChoice"
-                android:scrollbarSize="@dimen/margin_small"
-                android:scrollbars="vertical" />
+                android:divider="@color/gray"
+                android:dividerHeight="0.5dp"
+                android:scrollbars="none" />
 
         </LinearLayout>
 
         <LinearLayout
             android:id="@+id/third_part"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="0.1"
+            android:layout_height="wrap_content"
             android:gravity="center_horizontal"
             android:orientation="vertical"
+            android:paddingBottom="80dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -137,11 +152,13 @@
             <Button
                 android:id="@+id/button"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="50dp"
                 android:backgroundTint="@color/primaryColor"
+                android:paddingHorizontal="40dp"
                 android:text="@string/create_button"
                 android:textColor="@color/white"
-                android:textSize="@dimen/text_normal" />
+                android:textSize="16sp"
+                android:textStyle="bold" />
         </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>

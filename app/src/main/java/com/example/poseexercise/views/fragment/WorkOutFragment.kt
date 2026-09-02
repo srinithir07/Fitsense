@@ -92,7 +92,7 @@ class WorkOutFragment : Fragment(), MemoryManagement {
     private var imageProcessor: VisionImageProcessor? = null
     private var needUpdateGraphicOverlayImageSourceInfo = false
     private var selectedModel = POSE_DETECTION
-    private var lensFacing = CameraSelector.LENS_FACING_BACK
+    private var lensFacing = CameraSelector.LENS_FACING_FRONT
     private var cameraSelector: CameraSelector? = null
     private var today: String = DateFormat.format("EEEE", Date()) as String
     private var runOnce: Boolean = false
@@ -130,6 +130,23 @@ class WorkOutFragment : Fragment(), MemoryManagement {
     private lateinit var currentExerciseTextView: TextView
     private lateinit var currentRepetitionTextView: TextView
     private lateinit var confidenceTextView: TextView
+    private lateinit var fitsenseAnalysisPanel: View
+    private lateinit var formScoreText: TextView
+    private lateinit var riskScoreText: TextView
+    private lateinit var riskLevelText: TextView
+    private lateinit var formWarningText: TextView
+    private lateinit var jointRow1: View
+    private lateinit var jointLabel1: TextView
+    private lateinit var jointValue1: TextView
+    private lateinit var jointRow2: View
+    private lateinit var jointLabel2: TextView
+    private lateinit var jointValue2: TextView
+    private lateinit var jointRow3: View
+    private lateinit var jointLabel3: TextView
+    private lateinit var jointValue3: TextView
+    private lateinit var jointRow4: View
+    private lateinit var jointLabel4: TextView
+    private lateinit var jointValue4: TextView
     private lateinit var cameraViewModel: CameraXViewModel
     private lateinit var loadingTV: TextView
     private lateinit var loadProgress: ProgressBar
@@ -137,6 +154,12 @@ class WorkOutFragment : Fragment(), MemoryManagement {
     private lateinit var skipButton: Button
     private lateinit var textToSpeech: TextToSpeech
     private lateinit var yogaPoseImage: ImageView
+    private lateinit var repProgressContainer: View
+    private var isTtsReady: Boolean = false
+    private var pendingSpeechText: String? = null
+    private var hasAnnouncedAllCompleted: Boolean = false
+    private val databaseExercisePlan = mutableListOf<ExercisePlan>()
+    private val exerciseLog = ExerciseLog()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -170,6 +193,23 @@ class WorkOutFragment : Fragment(), MemoryManagement {
         currentExerciseTextView = view.findViewById(R.id.currentExerciseText)
         currentRepetitionTextView = view.findViewById(R.id.currentRepetitionText)
         confidenceTextView = view.findViewById(R.id.confidenceIndicatorTextView)
+        fitsenseAnalysisPanel = view.findViewById(R.id.fitsenseAnalysisPanel)
+        formScoreText = view.findViewById(R.id.formScoreText)
+        riskScoreText = view.findViewById(R.id.riskScoreText)
+        riskLevelText = view.findViewById(R.id.riskLevelText)
+        formWarningText = view.findViewById(R.id.formWarningText)
+        jointRow1 = view.findViewById(R.id.jointRow1)
+        jointLabel1 = view.findViewById(R.id.jointLabel1)
+        jointValue1 = view.findViewById(R.id.jointValue1)
+        jointRow2 = view.findViewById(R.id.jointRow2)
+        jointLabel2 = view.findViewById(R.id.jointLabel2)
+        jointValue2 = view.findViewById(R.id.jointValue2)
+        jointRow3 = view.findViewById(R.id.jointRow3)
+        jointLabel3 = view.findViewById(R.id.jointLabel3)
+        jointValue3 = view.findViewById(R.id.jointValue3)
+        jointRow4 = view.findViewById(R.id.jointRow4)
+        jointLabel4 = view.findViewById(R.id.jointLabel4)
+        jointValue4 = view.findViewById(R.id.jointValue4)
         completeAllExercise = view.findViewById(R.id.completedAllExerciseTextView)
         confIndicatorView.visibility = View.INVISIBLE
         confidenceTextView.visibility = View.INVISIBLE
@@ -179,6 +219,7 @@ class WorkOutFragment : Fragment(), MemoryManagement {
         workoutRecyclerView = view.findViewById(R.id.workoutRecycleViewArea)
         workoutRecyclerView.layoutManager = LinearLayoutManager(activity)
         yogaPoseImage = view.findViewById(R.id.yogaPoseSnapShot)
+        repProgressContainer = view.findViewById(R.id.repProgressContainer)
         return view
     }
 
@@ -188,29 +229,25 @@ class WorkOutFragment : Fragment(), MemoryManagement {
         previewView = view.findViewById(R.id.preview_view)
         val gifContainer: FrameLayout = view.findViewById(R.id.gifContainer)
         graphicOverlay = view.findViewById(R.id.graphic_overlay)
-        cameraFlipFAB.visibility = View.VISIBLE
-        startButton.visibility = View.VISIBLE
-        gifContainer.visibility = View.GONE
-        skipButton.visibility = View.GONE
 
+        // Initial DEMO view state: show exercise demonstration GIF, hide recording HUD
+        gifContainer.visibility = View.VISIBLE
+        startButton.visibility = View.VISIBLE
+        cameraFlipFAB.visibility = View.GONE
+        buttonCancelExercise.visibility = View.GONE
+        buttonCompleteExercise.visibility = View.GONE
+        timerTextView.visibility = View.GONE
+        timerRecordIcon.visibility = View.GONE
+        currentExerciseTextView.visibility = View.GONE
+        currentRepetitionTextView.visibility = View.GONE
+        workoutRecyclerView.visibility = View.GONE
+        fitsenseAnalysisPanel.visibility = View.GONE
+        repProgressContainer.visibility = View.GONE
+        skipButton.visibility = View.GONE
 
         // start exercise button
         startButton.setOnClickListener {
-            // showing loading AI pose detection Model information to user
-            loadingTV.visibility = View.GONE
-            loadProgress.visibility = View.GONE
-            // Set the screenOn flag to true, preventing the screen from turning off
-            screenOn = true
-            // Add the FLAG_KEEP_SCREEN_ON flag to the activity's window, keeping the screen on
-            activity?.window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-            cameraFlipFAB.visibility = View.GONE
-            gifContainer.visibility = View.VISIBLE
-            buttonCancelExercise.visibility = View.VISIBLE
-            buttonCompleteExercise.visibility = View.VISIBLE
-            startButton.visibility = View.GONE
-            // To disable screen timeout
-            //window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-            cameraViewModel.triggerClassification.value = true
+            startWorkoutRecording(view)
         }
 
         // Cancel the exercise
@@ -317,10 +354,8 @@ class WorkOutFragment : Fragment(), MemoryManagement {
         cameraFlipFAB.setOnClickListener {
             toggleCameraLens()
         }
-        // initialize the list of plan exercise to be filled from database
-        val databaseExercisePlan = mutableListOf<ExercisePlan>()
-        // Initialize Exercise Log
-        val exerciseLog = ExerciseLog()
+        // Clear and initialize plan data
+        databaseExercisePlan.clear()
         // get the list of plans from database
         lifecycleScope.launch(Dispatchers.IO) {
 
@@ -356,14 +391,7 @@ class WorkOutFragment : Fragment(), MemoryManagement {
 
             val viewPager: ViewPager2 = view.findViewById(R.id.exerciseViewPager)
             val exerciseGifAdapter = ExerciseGifAdapter(exerciseGifs) {
-                // Handle skip button click here
-                // Transition to the "Start" button
-                startButton.visibility = View.GONE
-                cameraFlipFAB.visibility = View.VISIBLE
-                viewPager.visibility = View.GONE
-                skipButton.visibility = View.GONE
-                gifContainer.visibility = View.GONE
-                cameraFlipFAB.visibility = View.GONE
+                startWorkoutRecording(view)
             }
             viewPager.adapter = exerciseGifAdapter
 
@@ -403,6 +431,61 @@ class WorkOutFragment : Fragment(), MemoryManagement {
         var previousConfidence: Float? = null
 
         cameraViewModel.postureLiveData.observe(viewLifecycleOwner) { mapResult ->
+            // Update FitSense UI using the active exercise result
+            val activeResult = mapResult.values.find { it.postureType != "neutral_standing" }
+                ?: mapResult.values.firstOrNull()
+
+            activeResult?.let { value ->
+                fitsenseAnalysisPanel.visibility = View.VISIBLE
+
+                formScoreText.text = "FORM  ${value.formScore}/100"
+                riskScoreText.text = "RISK  ${value.riskScore}/100"
+                riskLevelText.text = value.riskLevel
+                formWarningText.text = value.warning
+
+                if (value.jointMetric1Label.isNotEmpty()) {
+                    jointRow1.visibility = View.VISIBLE
+                    jointLabel1.text = value.jointMetric1Label
+                    jointValue1.text = value.jointMetric1Value
+                } else {
+                    jointRow1.visibility = View.GONE
+                }
+
+                if (value.jointMetric2Label.isNotEmpty()) {
+                    jointRow2.visibility = View.VISIBLE
+                    jointLabel2.text = value.jointMetric2Label
+                    jointValue2.text = value.jointMetric2Value
+                } else {
+                    jointRow2.visibility = View.GONE
+                }
+
+                if (value.jointMetric3Label.isNotEmpty()) {
+                    jointRow3.visibility = View.VISIBLE
+                    jointLabel3.text = value.jointMetric3Label
+                    jointValue3.text = value.jointMetric3Value
+                } else {
+                    jointRow3.visibility = View.GONE
+                }
+
+                if (value.jointMetric4Label.isNotEmpty()) {
+                    jointRow4.visibility = View.VISIBLE
+                    jointLabel4.text = value.jointMetric4Label
+                    jointValue4.text = value.jointMetric4Value
+                } else {
+                    jointRow4.visibility = View.GONE
+                }
+            }
+
+            val activeExerciseEntry = mapResult.entries.find { it.key in onlyExercise && it.value.postureType != "neutral_standing" }
+                ?: mapResult.entries.find { it.key in onlyExercise }
+
+            activeExerciseEntry?.let { (key, value) ->
+                currentExerciseTextView.visibility = View.VISIBLE
+                currentRepetitionTextView.visibility = View.VISIBLE
+                currentExerciseTextView.text = exerciseNameToDisplay(key)
+                currentRepetitionTextView.text = "${value.repetition}"
+            }
+
             for ((key, value) in mapResult) {
                 // Visualize the repetition exercise data
                 if (key in POSE_CLASSES.toList()) {
@@ -449,13 +532,14 @@ class WorkOutFragment : Fragment(), MemoryManagement {
                             // inform the user about completion only once
                             synthesizeSpeech(exerciseNameToDisplay(key) + " exercise Complete")
                             // check if all the exercise list complete if yes tell all exercise is complete
-                            if (exerciseLog.areAllExercisesCompleted(databaseExercisePlan)) {
+                            if (exerciseLog.areAllExercisesCompleted(databaseExercisePlan) && !hasAnnouncedAllCompleted) {
+                                hasAnnouncedAllCompleted = true
                                 val handler = Handler(Looper.getMainLooper())
                                 handler.postDelayed({
                                     synthesizeSpeech("Congratulation! all the planned exercise completed")
                                     isAllWorkoutFinished = true
                                     completeAllExercise.visibility = View.VISIBLE
-                                }, 5000)
+                                }, 2000)
                             }
                             // Update complete status for existing plan
                             if (data.planId != null) {
@@ -534,7 +618,6 @@ class WorkOutFragment : Fragment(), MemoryManagement {
                 runOnce = true
                 loadingTV.visibility = View.GONE
                 loadProgress.visibility = View.GONE
-                synthesizeSpeech("ready to start")
                 startMediaTimer()
                 timerTextView.visibility = View.VISIBLE
                 timerRecordIcon.visibility = View.VISIBLE
@@ -576,21 +659,84 @@ class WorkOutFragment : Fragment(), MemoryManagement {
      * Initialize TextToSpeech engine
      */
     private fun initTextToSpeech() {
-        textToSpeech = TextToSpeech(context) {
-            if (it == TextToSpeech.SUCCESS) {
+        textToSpeech = TextToSpeech(context) { status ->
+            if (status == TextToSpeech.SUCCESS) {
                 // Set language to US English and speech rate to 1.0
                 textToSpeech.language = Locale.US
                 textToSpeech.setSpeechRate(1.0f)
+                isTtsReady = true
+                pendingSpeechText?.let { text ->
+                    speakText(text)
+                    pendingSpeechText = null
+                }
             }
         }
     }
 
+    private fun startWorkoutRecording(view: View) {
+        val gifContainer: FrameLayout = view.findViewById(R.id.gifContainer)
+        val viewPager: ViewPager2 = view.findViewById(R.id.exerciseViewPager)
+
+        loadingTV.visibility = View.GONE
+        loadProgress.visibility = View.GONE
+        screenOn = true
+        activity?.window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+
+        // Hide Demo GIF Container
+        gifContainer.visibility = View.GONE
+        viewPager.visibility = View.GONE
+        skipButton.visibility = View.GONE
+        startButton.visibility = View.GONE
+
+        // Show Live Workout Controls
+        cameraFlipFAB.visibility = View.VISIBLE
+        buttonCancelExercise.visibility = View.VISIBLE
+        buttonCompleteExercise.visibility = View.VISIBLE
+
+        // Show Top Bar & Side HUD Panels
+        currentExerciseTextView.visibility = View.VISIBLE
+        currentRepetitionTextView.visibility = View.VISIBLE
+        timerTextView.visibility = View.VISIBLE
+        timerRecordIcon.visibility = View.VISIBLE
+        workoutRecyclerView.visibility = View.VISIBLE
+        fitsenseAnalysisPanel.visibility = View.VISIBLE
+        repProgressContainer.visibility = View.VISIBLE
+
+        // Set initial exercise name and rep count text
+        val firstExercise = databaseExercisePlan.firstOrNull()?.exerciseName
+            ?: exerciseNameToDisplay(SQUATS_CLASS)
+        currentExerciseTextView.text = exerciseNameToDisplay(firstExercise)
+        currentRepetitionTextView.text = "0"
+
+        // Set up workout progress adapter
+        val exerciseList = exerciseLog.getExerciseDataList()
+        workoutAdapter = WorkoutAdapter(exerciseList, databaseExercisePlan)
+        workoutRecyclerView.adapter = workoutAdapter
+
+        // Play workout start voice cue once
+        synthesizeSpeech("Workout started")
+
+        // Start Timer & Classification
+        startMediaTimer()
+        cameraViewModel.triggerClassification.value = true
+    }
+
     /**
-     * Synthesize speech using TextToSpeech
+     * Synthesize speech using TextToSpeech safely
      */
     private fun synthesizeSpeech(name: String) {
+        if (!isTtsReady) {
+            pendingSpeechText = name
+            return
+        }
+        speakText(name)
+    }
+
+    private fun speakText(name: String) {
         lifecycleScope.launch(Dispatchers.Default) {
-            textToSpeech.speak(name, TextToSpeech.QUEUE_ADD, null, null)
+            if (::textToSpeech.isInitialized && isTtsReady) {
+                textToSpeech.speak(name, TextToSpeech.QUEUE_ADD, null, "TTS_${System.currentTimeMillis()}")
+            }
         }
     }
 
@@ -603,7 +749,7 @@ class WorkOutFragment : Fragment(), MemoryManagement {
         currentRepetitionTextView.visibility = View.VISIBLE
         val data = exerciseLog.getExerciseData(key)
         currentExerciseTextView.text = exerciseNameToDisplay(key)
-        currentRepetitionTextView.text = "count: " + data?.repetitions.toString()
+        currentRepetitionTextView.text = data?.repetitions?.toString() ?: "0"
     }
 
     /**
@@ -631,137 +777,90 @@ class WorkOutFragment : Fragment(), MemoryManagement {
     }
 
     /**
-     * Bind all camera use cases (preview and analysis)
+     * Bind all camera use cases (preview and analysis) together safely
      */
     private fun bindAllCameraUseCases(notCompletedPlan: List<Plan>) {
-        // Bind all camera use cases (preview and analysis)
-        bindPreviewUseCase()
-        cameraViewModel.triggerClassification.observe(viewLifecycleOwner) { pressed ->
-            bindAnalysisUseCase(pressed, notCompletedPlan)
-        }
+        if (cameraProvider == null) return
+        val runClassification = cameraViewModel.triggerClassification.value ?: false
+        bindPreviewAndAnalysisUseCase(runClassification, notCompletedPlan)
     }
 
-    /**
-     * bind preview use case
-     */
     @Suppress("DEPRECATION")
-    private fun bindPreviewUseCase() {
-        if (!PreferenceUtils.isCameraLiveViewportEnabled(requireContext())) {
-            return
-        }
-        if (cameraProvider == null) {
-            return
-        }
-        if (previewUseCase != null) {
-            cameraProvider!!.unbind(previewUseCase)
-        }
-        val builder = Preview.Builder()
-        val targetResolution =
-            PreferenceUtils.getCameraXTargetResolution(requireContext(), lensFacing)
-        if (targetResolution != null) {
-            builder.setTargetResolution(targetResolution)
-        }
-        previewUseCase = builder.build()
-        previewUseCase!!.setSurfaceProvider(previewView!!.surfaceProvider)
-        camera = cameraProvider!!.bindToLifecycle(this, cameraSelector!!, previewUseCase)
-    }
-
-    /**
-     * bind analysis use case
-     */
-    private fun bindAnalysisUseCase(runClassification: Boolean, notCompletedPlan: List<Plan>) {
-        if (cameraProvider == null) {
-            return
-        }
-        if (analysisUseCase != null) {
-            cameraProvider?.unbind(analysisUseCase)
-        }
-        if (imageProcessor != null) {
-            imageProcessor?.stop()
-        }
-        imageProcessor = try {
-            when (selectedModel) {
-                POSE_DETECTION -> {
-                    // get all the setting preferences for camera x live preview
-                    val poseDetectorOptions =
-                        PreferenceUtils.getPoseDetectorOptionsForLivePreview(requireContext())
-                    val shouldShowInFrameLikelihood =
-                        PreferenceUtils.shouldShowPoseDetectionInFrameLikelihoodLivePreview(
-                            requireContext()
-                        )
-                    val visualizeZ = PreferenceUtils.shouldPoseDetectionVisualizeZ(requireContext())
-                    val rescaleZ =
-                        PreferenceUtils.shouldPoseDetectionRescaleZForVisualization(requireContext())
-
-                    // Build Pose Detector Processor based on the settings/preferences
-                    PoseDetectorProcessor(
-                        requireContext(),
-                        poseDetectorOptions,
-                        shouldShowInFrameLikelihood,
-                        visualizeZ,
-                        rescaleZ,
-                        runClassification,
-                        true,
-                        cameraViewModel,
-                        notCompletedPlan
-                    )
-                }
-
-                else -> throw IllegalStateException("Invalid model name")
+    private fun bindPreviewAndAnalysisUseCase(runClassification: Boolean, notCompletedPlan: List<Plan>) {
+        if (cameraProvider == null) return
+        try {
+            cameraProvider!!.unbindAll()
+            if (imageProcessor != null) {
+                imageProcessor?.stop()
+                imageProcessor = null
             }
-        } catch (e: Exception) {
-            Log.e(
-                TAG,
-                "Can not create image processor: $selectedModel",
-                e
-            )
-            Toast.makeText(
+
+            val builder = Preview.Builder()
+            val targetResolution = PreferenceUtils.getCameraXTargetResolution(requireContext(), lensFacing)
+            if (targetResolution != null) {
+                builder.setTargetResolution(targetResolution)
+            }
+            previewUseCase = builder.build()
+            previewUseCase!!.setSurfaceProvider(previewView!!.surfaceProvider)
+
+            val poseDetectorOptions = PreferenceUtils.getPoseDetectorOptionsForLivePreview(requireContext())
+            val shouldShowInFrameLikelihood = PreferenceUtils.shouldShowPoseDetectionInFrameLikelihoodLivePreview(requireContext())
+            val visualizeZ = PreferenceUtils.shouldPoseDetectionVisualizeZ(requireContext())
+            val rescaleZ = PreferenceUtils.shouldPoseDetectionRescaleZForVisualization(requireContext())
+
+            imageProcessor = PoseDetectorProcessor(
                 requireContext(),
-                "Can not create image processor: " + e.localizedMessage,
-                Toast.LENGTH_LONG
-            ).show()
-            return
-        }
-        val builder = ImageAnalysis.Builder()
-        analysisUseCase = builder.build()
-        needUpdateGraphicOverlayImageSourceInfo = true
-        analysisUseCase?.setAnalyzer(
-            ContextCompat.getMainExecutor(requireContext())
-        ) { imageProxy: ImageProxy ->
-            if (needUpdateGraphicOverlayImageSourceInfo) {
-                val isImageFlipped = lensFacing == CameraSelector.LENS_FACING_FRONT
-                val rotationDegrees = imageProxy.imageInfo.rotationDegrees
-                if (rotationDegrees == 0 || rotationDegrees == 180) {
-                    graphicOverlay!!.setImageSourceInfo(
-                        imageProxy.width,
-                        imageProxy.height,
-                        isImageFlipped
-                    )
-                } else {
-                    graphicOverlay!!.setImageSourceInfo(
-                        imageProxy.height,
-                        imageProxy.width,
-                        isImageFlipped
-                    )
+                poseDetectorOptions,
+                shouldShowInFrameLikelihood,
+                visualizeZ,
+                rescaleZ,
+                runClassification,
+                true,
+                cameraViewModel,
+                notCompletedPlan
+            )
+
+            val analysisBuilder = ImageAnalysis.Builder()
+            analysisUseCase = analysisBuilder.build()
+            needUpdateGraphicOverlayImageSourceInfo = true
+            analysisUseCase?.setAnalyzer(
+                ContextCompat.getMainExecutor(requireContext())
+            ) { imageProxy: ImageProxy ->
+                if (needUpdateGraphicOverlayImageSourceInfo) {
+                    val isImageFlipped = lensFacing == CameraSelector.LENS_FACING_FRONT
+                    val rotationDegrees = imageProxy.imageInfo.rotationDegrees
+                    if (rotationDegrees == 0 || rotationDegrees == 180) {
+                        graphicOverlay!!.setImageSourceInfo(
+                            imageProxy.width,
+                            imageProxy.height,
+                            isImageFlipped
+                        )
+                    } else {
+                        graphicOverlay!!.setImageSourceInfo(
+                            imageProxy.height,
+                            imageProxy.width,
+                            isImageFlipped
+                        )
+                    }
+                    needUpdateGraphicOverlayImageSourceInfo = false
                 }
-                needUpdateGraphicOverlayImageSourceInfo = false
+
+                try {
+                    imageProcessor!!.processImageProxy(imageProxy, graphicOverlay)
+                } catch (e: MlKitException) {
+                    Log.e(TAG, "Failed to process image. Error: " + e.localizedMessage)
+                }
             }
 
-            try {
-                imageProcessor!!.processImageProxy(imageProxy, graphicOverlay)
-            } catch (e: MlKitException) {
-                Log.e(
-                    TAG,
-                    "Failed to process image. Error: " + e.localizedMessage
-                )
-                Toast.makeText(
-                    requireContext(),
-                    e.localizedMessage,
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
+            camera = cameraProvider!!.bindToLifecycle(
+                this,
+                cameraSelector!!,
+                previewUseCase!!,
+                analysisUseCase!!
+            )
+        } catch (e: Exception) {
+            Log.e(TAG, "Error binding camera use cases", e)
         }
-        cameraProvider?.bindToLifecycle(this, cameraSelector!!, analysisUseCase)
     }
 
     /**
@@ -815,6 +914,20 @@ class WorkOutFragment : Fragment(), MemoryManagement {
                 permissionsToRequest.toTypedArray(),
                 PERMISSION_REQUESTS
             )
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == PERMISSION_REQUESTS && allRuntimePermissionsGranted()) {
+            cameraViewModel.processCameraProvider.observe(viewLifecycleOwner) { provider: ProcessCameraProvider? ->
+                cameraProvider = provider
+                notCompletedExercise?.let { bindAllCameraUseCases(it) } ?: bindAllCameraUseCases(emptyList())
+            }
         }
     }
 

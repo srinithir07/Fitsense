@@ -56,8 +56,38 @@ class ProfileFragment : Fragment(), MemoryManagement {
         chart = view.findViewById(R.id.chart)
         workOutTime = view.findViewById(R.id.total_time)
         appRepository = AppRepository(requireActivity().application)
+
+        setupThemeSwitcher(view)
+
         // Load data and set up the chart
         loadDataAndSetupChart()
+    }
+
+    private fun setupThemeSwitcher(view: View) {
+        val radioLight = view.findViewById<android.widget.RadioButton>(R.id.radioLight)
+        val radioDark = view.findViewById<android.widget.RadioButton>(R.id.radioDark)
+        val prefs = requireContext().getSharedPreferences("FitSenseThemePref", android.content.Context.MODE_PRIVATE)
+
+        val currentMode = prefs.getString("theme_mode", "light")
+        if (currentMode == "dark") {
+            radioDark?.isChecked = true
+        } else {
+            radioLight?.isChecked = true
+        }
+
+        radioLight?.setOnClickListener {
+            if (prefs.getString("theme_mode", "light") != "light") {
+                prefs.edit().putString("theme_mode", "light").apply()
+                androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO)
+            }
+        }
+
+        radioDark?.setOnClickListener {
+            if (prefs.getString("theme_mode", "light") != "dark") {
+                prefs.edit().putString("theme_mode", "dark").apply()
+                androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES)
+            }
+        }
     }
 
     private fun loadDataAndSetupChart() {

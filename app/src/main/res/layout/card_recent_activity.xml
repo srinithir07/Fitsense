@@ -4,22 +4,26 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:paddingHorizontal="@dimen/padding_medium"
-    android:paddingVertical="@dimen/padding_small">
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="12dp"
+    android:gravity="center_vertical">
 
     <ImageView
         android:id="@+id/imageView"
-        android:layout_width="23dp"
-        android:layout_height="23dp"
-        android:layout_marginEnd="@dimen/margin_small"
-        android:src="@drawable/blue" />
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginEnd="12dp"
+        android:background="@drawable/circle_home"
+        android:backgroundTint="#E6F4EA"
+        android:padding="8dp"
+        android:src="@drawable/dumbell"
+        app:tint="@color/primaryColor" />
 
     <!-- Exercise Details -->
     <RelativeLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:layout_marginStart="@dimen/padding_small"
         android:layout_gravity="center_vertical">
 
         <TextView
@@ -27,18 +31,19 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/exercise_type"
-            android:textSize="@dimen/text_label"
+            android:textColor="@color/textPrimary"
+            android:textSize="15sp"
             android:textStyle="bold" />
 
         <TextView
             android:id="@+id/textViewReps"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignBaseline="@id/textViewExerciseType"
+            android:layout_centerVertical="true"
             android:layout_alignParentEnd="true"
-            android:layout_marginStart="@dimen/margin_small"
-            android:layout_marginEnd="@dimen/text_normal"
-            android:text="@string/reps"
-            android:textSize="@dimen/text_normal" />
+            android:textColor="@color/textMuted"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:text="@string/reps" />
     </RelativeLayout>
 </LinearLayout>

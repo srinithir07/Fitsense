@@ -1,28 +1,13 @@
-/*
- * Copyright 2020 Google LLC. All rights reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.example.poseexercise.posedetector.classification;
 
 import android.content.Context;
 import android.media.AudioManager;
 import android.media.ToneGenerator;
 import android.os.Looper;
-import android.util.Log;
 
 import androidx.annotation.WorkerThread;
+
+import android.util.Log;
 
 import com.example.poseexercise.data.PostureResult;
 import com.google.common.base.Preconditions;
@@ -40,52 +25,72 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 /**
- * Accepts a stream of {@link Pose} for classification and Rep counting.
+ * Accepts a Pose and runs pose classification.
  */
 public class PoseClassifierProcessor {
     private static final String TAG = "PoseClassifierProcessor";
+    private static final String SQUAT_FILE = "pose_poses_csv/squats.csv";
+    private static final String PUSH_UP_FILE = "pose_poses_csv/pushups.csv";
+    private static final String SIT_UP_FILE = "pose_poses_csv/situp.csv";
 
-    // File names of all exercise
-    private static final String SQUAT_FILE = "pose/squats.csv";
-    private static final String PUSH_UP_FILE = "pose/pushups.csv";
-    private static final String LUNGE_FILE = "pose/lunges.csv";
-    private static final String NEUTRAL_STANDING_FILE = "pose/neutral_standing.csv";
-    private static final String SIT_UP_FILE = "pose/situps.csv";
-    private static final String CHEST_PRESS_FILE = "pose/chestpress.csv";
-    private static final String DEAD_LIFT_FILE = "pose/deadlift.csv";
-    private static final String SHOULDER_PRESS_FILE = "pose/shoulderpress.csv";
-    private static final String TREE_YOGA_FILE = "pose/treeyoga.csv";
-    private static final String WARRIOR_YOGA_FILE = "pose/warrioryoga.csv";
+    private static final String LUNGE_FILE = "pose_poses_csv/lunges.csv";
+    private static final String CHEST_PRESS_FILE = "pose_poses_csv/chestpress.csv";
+    private static final String DEAD_LIFT_FILE = "pose_poses_csv/deadlifts.csv";
+    private static final String SHOULDER_PRESS_FILE = "pose_poses_csv/shoulderpress.csv";
 
+    private static final String WARRIOR_YOGA_FILE = "pose_poses_csv/warrior.csv";
+    private static final String TREE_YOGA_FILE = "pose_poses_csv/tree.csv";
 
-    // The class name for all the exercise
-    public static final String PUSHUPS_CLASS = "pushups_down";
+    private static final String NEUTRAL_STANDING_FILE = "pose_poses_csv/neutral_standing.csv";
+
     public static final String SQUATS_CLASS = "squats";
+
+    public static final String PUSHUPS_CLASS = "pushups";
+
+    public static final String SITUP_UP_CLASS = "situp";
+
     public static final String LUNGES_CLASS = "lunges";
-    public static final String SITUP_UP_CLASS = "situp_up";
-    public static final String CHEST_PRESS_CLASS = "chestpress_down";
-    public static final String DEAD_LIFT_CLASS = "deadlift_down";
-    public static final String SHOULDER_PRESS_CLASS = "shoulderpress_down";
+
+    public static final String CHEST_PRESS_CLASS = "chestpress";
+
+    public static final String DEAD_LIFT_CLASS = "deadlifts";
+
+    public static final String SHOULDER_PRESS_CLASS = "shoulderpress";
+
+    public static final String WARRIOR_YOGA_CLASS = "warrior";
     public static final String WARRIOR_CLASS = "warrior";
-    public static final String YOGA_TREE_CLASS = "tree_pose";
+
+    public static final String TREE_YOGA_CLASS = "tree";
+    public static final String YOGA_TREE_CLASS = "tree";
+
     public static final String[] POSE_CLASSES = {
-            PUSHUPS_CLASS, SQUATS_CLASS, LUNGES_CLASS, SITUP_UP_CLASS, CHEST_PRESS_CLASS, DEAD_LIFT_CLASS, SHOULDER_PRESS_CLASS, WARRIOR_CLASS, YOGA_TREE_CLASS
+            SQUATS_CLASS,
+            PUSHUPS_CLASS,
+            SITUP_UP_CLASS,
+            LUNGES_CLASS,
+            CHEST_PRESS_CLASS,
+            DEAD_LIFT_CLASS,
+            SHOULDER_PRESS_CLASS,
+            WARRIOR_YOGA_CLASS,
+            TREE_YOGA_CLASS,
     };
 
     private final boolean isStreamMode;
+
     private EMASmoothing emaSmoothing;
     private List<RepetitionCounter> repCounters;
     private PoseClassifier poseClassifier;
+    private final FitSenseFormAnalyzer fitSenseFormAnalyzer =
+            new FitSenseFormAnalyzer();
     private final Map<String, PostureResult> postureResults = new HashMap<>();
-
+    private String lastActiveExerciseClass = null;
+    private long lastLogTimeMs = 0;
 
     @WorkerThread
     public PoseClassifierProcessor(Context context, boolean isStreamMode, List<String> plan) {
-
         Preconditions.checkState(Looper.myLooper() != Looper.getMainLooper());
         this.isStreamMode = isStreamMode;
         if (isStreamMode) {
@@ -98,20 +103,13 @@ public class PoseClassifierProcessor {
             Log.d("pose_classifier_processor: ", mapExercisesToFiles(plan).toString());
         }
 
-        //loadPoseSamples(context);
         combineAndLoadPoseSamples(context, mapExercisesToFiles(plan));
     }
 
     private void combineAndLoadPoseSamples(Context context, List<String> mappedPlan) {
-        // Ensure the combined file exists in internal storage
         String combinedFilePath = context.getFilesDir().getPath() + File.separator + "combined_poses.csv";
-
         createNewFileReplacingPrevious(combinedFilePath);
-
-        // Combine separate CSV files into a new combined file
         combineCSVFiles(context, combinedFilePath, mappedPlan);
-
-        // Now, load pose samples from the combined file
         loadPoseSamples(context, combinedFilePath);
     }
 
@@ -136,16 +134,13 @@ public class PoseClassifierProcessor {
                     writer.println(csvLine);
                     csvLine = reader.readLine();
                 }
-                // Add an empty line between files
                 writer.println();
-
                 reader.close();
             }
         } catch (IOException e) {
             Log.e(TAG, "Error when combining CSV files.\n" + e);
         }
     }
-
 
     private static List<String> mapExercisesToFiles(List<String> exercises) {
         List<String> files = new ArrayList<>();
@@ -168,17 +163,12 @@ public class PoseClassifierProcessor {
                     }
                     case "Chest press" -> addUniqueFile(files, uniqueFileNames, CHEST_PRESS_FILE);
                     case "Dead lift" -> addUniqueFile(files, uniqueFileNames, DEAD_LIFT_FILE);
-                    case "Shoulder press" ->
-                            addUniqueFile(files, uniqueFileNames, SHOULDER_PRESS_FILE);
-
-                    // Add more cases for other exercises if needed
-                    default -> {
-                    }
+                    case "Shoulder press" -> addUniqueFile(files, uniqueFileNames, SHOULDER_PRESS_FILE);
+                    default -> {}
                 }
             }
         }
 
-        // Exercise by Default
         addUniqueFile(files, uniqueFileNames, LUNGE_FILE);
         addUniqueFile(files, uniqueFileNames, NEUTRAL_STANDING_FILE);
         addUniqueFile(files, uniqueFileNames, SQUAT_FILE);
@@ -190,21 +180,16 @@ public class PoseClassifierProcessor {
 
     private static void addUniqueFile(List<String> files, Set<String> uniqueFileNames, String fileName) {
         if (uniqueFileNames.add(fileName)) {
-            // If the file name is unique, add it to the list
             files.add(fileName);
         }
     }
 
-
     private void loadPoseSamples(Context context, String filePath) {
         List<PoseSample> poseSamples = new ArrayList<>();
         try {
-
             BufferedReader reader = new BufferedReader(new FileReader(filePath));
-
             String csvLine = reader.readLine();
             while (csvLine != null) {
-                // If line is not a valid {@link PoseSample}, we'll get null and skip adding to the list.
                 PoseSample poseSample = PoseSample.getPoseSample(csvLine, ",");
                 if (poseSample != null) {
                     poseSamples.add(poseSample);
@@ -222,58 +207,135 @@ public class PoseClassifierProcessor {
         }
     }
 
-    /**
-     * Given a new {@link Pose} input, returns a list of formatted {@link String}s with Pose
-     * classification results.
-     *
-     * <p>Currently it returns up to 2 strings as following:
-     * 0: PoseClass : X reps
-     * 1: PoseClass : [0.0-1.0] confidence
-     */
     @WorkerThread
     public Map<String, PostureResult> getPoseResult(Pose pose) {
         Preconditions.checkState(Looper.myLooper() != Looper.getMainLooper());
 
         ClassificationResult classification = poseClassifier.classify(pose);
 
-        // Update {@link RepetitionCounter}s if {@code isStreamMode}.
         if (isStreamMode) {
-            // Feed pose to smoothing even if no pose found.
             classification = emaSmoothing.getSmoothedResult(classification);
 
-            // Return early without updating repCounter if no pose found.
             if (pose.getAllPoseLandmarks().isEmpty()) {
-                return postureResults;
+                return new HashMap<>(postureResults);
             }
 
             for (RepetitionCounter repCounter : repCounters) {
                 int repsBefore = repCounter.getNumRepeats();
                 int repsAfter = repCounter.addClassificationResult(classification);
                 if (repsAfter > repsBefore) {
-                    // Play a fun beep when rep counter updates.
                     ToneGenerator tg = new ToneGenerator(AudioManager.STREAM_NOTIFICATION, 100);
                     tg.startTone(ToneGenerator.TONE_PROP_BEEP);
-
-                    // Add result to map
                     postureResults.put(repCounter.getClassName(), new PostureResult(repsAfter, 0, repCounter.getClassName()));
                     break;
                 }
             }
         }
 
-        // Add maxConfidence class of current frame to result if pose is found.
         if (!pose.getAllPoseLandmarks().isEmpty()) {
             String maxConfidenceClass = classification.getMaxConfidenceClass();
 
-            // find the key from the map -> if it exists, update the confidence value, otherwise add a new entry
+            if (!"neutral_standing".equalsIgnoreCase(maxConfidenceClass)) {
+                lastActiveExerciseClass = maxConfidenceClass;
+            }
+
+            String targetExerciseForAnalysis = ("neutral_standing".equalsIgnoreCase(maxConfidenceClass) && lastActiveExerciseClass != null)
+                    ? lastActiveExerciseClass
+                    : maxConfidenceClass;
+
+            FitSenseFormAnalyzer.FormAnalysis formAnalysis =
+                    fitSenseFormAnalyzer.analyze(pose, targetExerciseForAnalysis);
+
+            long nowMs = android.os.SystemClock.elapsedRealtime();
+            if (nowMs - lastLogTimeMs > 1000) {
+                lastLogTimeMs = nowMs;
+                Log.d("FitSenseDebug", "exercise=" + targetExerciseForAnalysis
+                        + " form=" + formAnalysis.getFormScore()
+                        + " risk=" + formAnalysis.getRiskScore()
+                        + " level=" + formAnalysis.getRiskLevel()
+                        + " warning=" + formAnalysis.getWarning());
+            }
+
             if (postureResults.containsKey(maxConfidenceClass)) {
-                Objects.requireNonNull(postureResults.get(maxConfidenceClass))
-                        .setConfidence(classification.getClassConfidence(maxConfidenceClass) / poseClassifier.confidenceRange());
+                PostureResult result = postureResults.get(maxConfidenceClass);
+                if (result != null) {
+                    result.setConfidence(classification.getClassConfidence(maxConfidenceClass) / poseClassifier.confidenceRange());
+                    result.formScore = formAnalysis.getFormScore();
+                    result.riskScore = formAnalysis.getRiskScore();
+                    result.riskLevel = formAnalysis.getRiskLevel();
+                    result.warning = formAnalysis.getWarning();
+
+                    result.jointMetric1Label = formAnalysis.getJointMetric1Label();
+                    result.jointMetric1Value = formAnalysis.getJointMetric1Value();
+                    result.jointMetric2Label = formAnalysis.getJointMetric2Label();
+                    result.jointMetric2Value = formAnalysis.getJointMetric2Value();
+                    result.jointMetric3Label = formAnalysis.getJointMetric3Label();
+                    result.jointMetric3Value = formAnalysis.getJointMetric3Value();
+                    result.jointMetric4Label = formAnalysis.getJointMetric4Label();
+                    result.jointMetric4Value = formAnalysis.getJointMetric4Value();
+                }
             } else {
-                postureResults.put(maxConfidenceClass, new PostureResult(0, classification.getClassConfidence(maxConfidenceClass) / poseClassifier.confidenceRange(), maxConfidenceClass));
+                PostureResult result = new PostureResult(
+                        0,
+                        classification.getClassConfidence(maxConfidenceClass) / poseClassifier.confidenceRange(),
+                        maxConfidenceClass);
+
+                result.formScore = formAnalysis.getFormScore();
+                result.riskScore = formAnalysis.getRiskScore();
+                result.riskLevel = formAnalysis.getRiskLevel();
+                result.warning = formAnalysis.getWarning();
+
+                result.jointMetric1Label = formAnalysis.getJointMetric1Label();
+                result.jointMetric1Value = formAnalysis.getJointMetric1Value();
+                result.jointMetric2Label = formAnalysis.getJointMetric2Label();
+                result.jointMetric2Value = formAnalysis.getJointMetric2Value();
+                result.jointMetric3Label = formAnalysis.getJointMetric3Label();
+                result.jointMetric3Value = formAnalysis.getJointMetric3Value();
+                result.jointMetric4Label = formAnalysis.getJointMetric4Label();
+                result.jointMetric4Value = formAnalysis.getJointMetric4Value();
+
+                postureResults.put(maxConfidenceClass, result);
+            }
+
+            if (lastActiveExerciseClass != null && !lastActiveExerciseClass.equalsIgnoreCase(maxConfidenceClass)) {
+                if (postureResults.containsKey(lastActiveExerciseClass)) {
+                    PostureResult activeResult = postureResults.get(lastActiveExerciseClass);
+                    if (activeResult != null) {
+                        activeResult.formScore = formAnalysis.getFormScore();
+                        activeResult.riskScore = formAnalysis.getRiskScore();
+                        activeResult.riskLevel = formAnalysis.getRiskLevel();
+                        activeResult.warning = formAnalysis.getWarning();
+
+                        activeResult.jointMetric1Label = formAnalysis.getJointMetric1Label();
+                        activeResult.jointMetric1Value = formAnalysis.getJointMetric1Value();
+                        activeResult.jointMetric2Label = formAnalysis.getJointMetric2Label();
+                        activeResult.jointMetric2Value = formAnalysis.getJointMetric2Value();
+                        activeResult.jointMetric3Label = formAnalysis.getJointMetric3Label();
+                        activeResult.jointMetric3Value = formAnalysis.getJointMetric3Value();
+                        activeResult.jointMetric4Label = formAnalysis.getJointMetric4Label();
+                        activeResult.jointMetric4Value = formAnalysis.getJointMetric4Value();
+                    }
+                } else {
+                    PostureResult activeResult = new PostureResult(0, 0f, lastActiveExerciseClass);
+                    activeResult.formScore = formAnalysis.getFormScore();
+                    activeResult.riskScore = formAnalysis.getRiskScore();
+                    activeResult.riskLevel = formAnalysis.getRiskLevel();
+                    activeResult.warning = formAnalysis.getWarning();
+
+                    activeResult.jointMetric1Label = formAnalysis.getJointMetric1Label();
+                    activeResult.jointMetric1Value = formAnalysis.getJointMetric1Value();
+                    activeResult.jointMetric2Label = formAnalysis.getJointMetric2Label();
+                    activeResult.jointMetric2Value = formAnalysis.getJointMetric2Value();
+                    activeResult.jointMetric3Label = formAnalysis.getJointMetric3Label();
+                    activeResult.jointMetric3Value = formAnalysis.getJointMetric3Value();
+                    activeResult.jointMetric4Label = formAnalysis.getJointMetric4Label();
+                    activeResult.jointMetric4Value = formAnalysis.getJointMetric4Value();
+
+                    postureResults.put(lastActiveExerciseClass, activeResult);
+                }
             }
         }
 
-        return postureResults;
+        return new HashMap<>(postureResults);
     }
 }

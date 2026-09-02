@@ -36,19 +36,16 @@ class PlanAdapter internal constructor(context: Context) :
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        // Inflate the item view from the layout
         val itemView = inflater.inflate(R.layout.plan_list_item, parent, false)
         return ViewHolder(itemView)
     }
 
     override fun getItemCount(): Int {
-        // Return the number of items in the plan list
         return planList.size
     }
 
     @SuppressLint("SetTextI18n", "NotifyDataSetChanged")
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        // Bind data to the item views
         val currentPlan = planList[position]
         holder.workoutImage.setImageResource(
             getDrawableResourceIdExercise(
@@ -58,46 +55,61 @@ class PlanAdapter internal constructor(context: Context) :
         holder.workoutName.text = currentPlan.exercise
         holder.repeat.text = "${currentPlan.repeatCount} ${currentPlan.exercise} a day"
         holder.deleteButton.setOnClickListener {
-            // Handle delete button click and notify the listener
             listener.onItemClicked(currentPlan.id, position)
             notifyDataSetChanged()
         }
     }
 
-    // Interface for item click events
     interface ItemListener {
         fun onItemClicked(planId: Int, position: Int)
     }
 
-    // Set the listener for item click events
     fun setListener(listener: ItemListener) {
         this.listener = listener
     }
 
     @SuppressLint("NotifyDataSetChanged")
     fun setPlans(plans: MutableList<Plan>) {
-        // Set the plan list and notify data set changed
         this.planList = plans
         notifyDataSetChanged()
     }
 
-    /**
-     * List of yoga images
-     */
     private val exerciseImages = mapOf(
         SQUATS_CLASS to R.drawable.squat,
+        "squats" to R.drawable.squat,
         LUNGES_CLASS to R.drawable.reverse_lunges,
+        "lunges" to R.drawable.reverse_lunges,
         SITUP_UP_CLASS to R.drawable.sit_ups,
+        "situp" to R.drawable.sit_ups,
+        "situp_up" to R.drawable.sit_ups,
         PUSHUPS_CLASS to R.drawable.push_up,
+        "pushups" to R.drawable.push_up,
+        "pushups_down" to R.drawable.push_up,
         CHEST_PRESS_CLASS to R.drawable.chest_press,
+        "chestpress" to R.drawable.chest_press,
+        "chestpress_down" to R.drawable.chest_press,
         DEAD_LIFT_CLASS to R.drawable.dead_lift,
-        SHOULDER_PRESS_CLASS to R.drawable.shoulder_press
+        "deadlifts" to R.drawable.dead_lift,
+        "deadlift_down" to R.drawable.dead_lift,
+        SHOULDER_PRESS_CLASS to R.drawable.shoulder_press,
+        "shoulderpress" to R.drawable.shoulder_press,
+        "shoulderpress_down" to R.drawable.shoulder_press
     )
 
     private fun getDrawableResourceIdExercise(exerciseKey: String): Int {
-        // Get the image resource ID for the given exercise key
-        return exerciseImages[exerciseKey]
-            ?: throw IllegalArgumentException("Invalid yoga pose key: $exerciseKey")
+        if (exerciseImages.containsKey(exerciseKey)) {
+            return exerciseImages[exerciseKey]!!
+        }
+        val keyLower = exerciseKey.lowercase()
+        return when {
+            keyLower.contains("squat") -> R.drawable.squat
+            keyLower.contains("lunge") -> R.drawable.reverse_lunges
+            keyLower.contains("sit") || keyLower.contains("situp") -> R.drawable.sit_ups
+            keyLower.contains("push") || keyLower.contains("pushup") -> R.drawable.push_up
+            keyLower.contains("chest") -> R.drawable.chest_press
+            keyLower.contains("dead") -> R.drawable.dead_lift
+            keyLower.contains("shoulder") -> R.drawable.shoulder_press
+            else -> R.drawable.squat
+        }
     }
-
 }

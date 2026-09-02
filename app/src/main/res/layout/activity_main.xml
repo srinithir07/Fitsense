@@ -26,10 +26,10 @@
             android:id="@+id/nav_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cbn_bg="@color/black"
+            app:cbn_bg="@color/secondaryNavy"
             app:cbn_fabBg="@color/primaryColor"
-            app:cbn_selectedColor="@color/white"
-            app:cbn_unSelectedColor="@color/white"
+            app:cbn_selectedColor="@color/primaryColor"
+            app:cbn_unSelectedColor="@color/gray"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
