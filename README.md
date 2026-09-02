@@ -1,15 +1,13 @@
 <a name="readme-top"></a>
-<h1 align="center">RepDetect</h1> 
+<h1 align="center">FitSense</h1> 
 
 <h3 align="center">Make counting of exercise easier with RepDetect.</h3>
 
-<p align="center">
-  <img width="200" height="160" src="https://users.metropolia.fi/~shilpasy/repdetectLogo.png" alt="App Logo">
-</p>
+
 
 ## Mobile project with AI
 
-Welcome to RepDetect, an innovative Android application developed with Kotlin that leverages the capabilities of MediaPipe Pose Landmark Detection. RepDetect accurately counts repetitions, enhancing your workout experience.
+Welcome to FitSense, an innovative Android application developed with Kotlin that leverages the capabilities of MediaPipe Pose Landmark Detection. FitSense accurately counts repetitions, enhancing your workout experience.
 
 
 ## Table of Contents
@@ -255,27 +253,3 @@ The detected landmark data plays a crucial role in training machine learning mod
 - Lifecycle ViewModel - androidx.lifecycle:lifecycle-viewmodel:2.3.1
 
 
-## License
-
-[Apache License 2.0](https://github.com/SurajKRB/RepDetect/blob/main/LICENSE.txt) license
-
-
-## References
-
-[Pose landmark detection guide](https://developers.google.com/mediapipe/solutions/vision/pose_landmarker/index)
-
-[Train the model ](https://colab.research.google.com/drive/19txHpN8exWhstO6WVkfmYYVC6uug_oVR)
-
-
-## Contributors
-
-[Chi Nguyen](https://github.com/chinguyen202)
-
-[Giao Ngo](https://github.com/giaongo)
-
-[Suraj Rana Bhat](https://github.com/SurajKRB)
-
-[Shilpa Singh Yadav](https://github.com/Shilupa)
-
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
